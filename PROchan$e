@@ -1,0 +1,87 @@
+# app.py
+
+import os
+import requests
+from flask import Flask, render_template, request
+
+app = Flask(__name__)
+
+# API key for the News API
+NEWS_API_KEY = os.environ.get('NEWS_API_KEY')
+
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+@app.route('/news', methods=['GET', 'POST'])
+def news():
+    if request.method == 'POST':
+        sport = request.form['sport']
+        url = f'https://newsapi.org/v2/top-headlines?country=us&category={sport}&apiKey={NEWS_API_KEY}'
+        response = requests.get(url)
+        articles = response.json()['articles']
+        return render_template('news.html', sport=sport, articles=articles)
+    else:
+        return render_template('index.html')
+
+if __name__ == '__main__':
+    app.run()
+
+
+
+
+<!-- index.html -->
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Sports News</title>
+</head>
+<body>
+    <h1>Sports News</h1>
+    <form method="post" action="/news">
+        <label for="sport">Select a sport:</label>
+        <select name="sport" id="sport">
+            <option value="business">Business</option>
+            <option value="entertainment">Entertainment</option>
+            <option value="general">General</option>
+            <option value="health">Health</option>
+            <option value="science">Science</option>
+            <option value="sports">Sports</option>
+            <option value="technology">Technology</option>
+        </select>
+        <br><br>
+        <input type="submit" value="Get News">
+    </form>
+</body>
+</html>
+
+
+
+<!-- news.html -->
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ sport }} News</title>
+    <style>
+        .article {
+            border: 1px solid black;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>{{ sport }} News</h1>
+    <p><a href="/">Back to sports selection</a></p>
+    {% for article in articles %}
+        <div class="article">
+            <h2>{{ article.title }}</h2>
+            <p>{{ article.description }}</p>
+            <a href="{{ article.url }}">Read more</a>
+        </div>
+    {% endfor %}
+</body>
+</html>
+
